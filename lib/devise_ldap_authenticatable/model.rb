@@ -102,7 +102,11 @@ module Devise
             resource.password = attributes[:password]
           end
 
-          if ::Devise.ldap_create_user && resource.new_record? && resource.valid_ldap_authentication?(attributes[:password])
+          unless resource.valid_ldap_authentication?(attributes[:password])
+            return nil
+          end
+
+          if ::Devise.ldap_create_user && resource.new_record? 
             resource.ldap_before_save if resource.respond_to?(:ldap_before_save)
             resource.save!
           end
