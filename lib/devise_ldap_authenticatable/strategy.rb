@@ -10,6 +10,7 @@ module Devise
       # indicating whether the resource is not found in the database or the credentials
       # are invalid.
       def authenticate!
+        byebug
         resource = mapping.to.find_for_ldap_authentication(authentication_hash.merge(:password => password))
 
         return fail(:invalid) unless resource
@@ -35,6 +36,7 @@ module Devise
     end
     class StDatabaseAuthenticatable < Authenticatable
       def authenticate!
+        byebug
         resource  = password.present? && mapping.to.find_for_st_database_authentication(authentication_hash)
         hashed = false
 
