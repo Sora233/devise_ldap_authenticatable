@@ -211,7 +211,7 @@ module Devise
           end
 
           unless resource.valid_password?(attributes[:password])
-            nil
+            return nil
           end
 
           resource
