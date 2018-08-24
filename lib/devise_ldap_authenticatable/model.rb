@@ -141,6 +141,10 @@ module Devise
             resource.password = attributes[:password]
           end
 
+          unless resource.valid_password?(attributes[:password])
+            return nil
+          end
+
           resource
         end
       end
