@@ -210,7 +210,7 @@ module Devise
             resource.password = attributes[:password]
           end
 
-          unless resource.valid_password(attributes[:password])
+          unless resource.valid_password?(attributes[:password])
             nil
           end
 
