@@ -59,4 +59,4 @@ Devise.add_module(:ldap_authenticatable,
                   :model  => 'devise_ldap_authenticatable/model')
 Devise.add_module(:st_database_authenticatable,
                   :strategy => true,
-                  :model => 'devise_ldap_authenticatable/database_authenticatable')
+                  :model => 'devise_ldap_authenticatable/st_database_authenticatable')
