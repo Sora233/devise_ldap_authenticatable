@@ -203,14 +203,7 @@ module Devise
 
           resource = where(auth_key => auth_key_value, :login_type => 'database').first
 
-          if resource.blank?
-            resource = new
-            resource[auth_key] = auth_key_value
-            resource.login_type = 'database'
-            resource.password = attributes[:password]
-          end
-
-          unless resource.valid_password?(attributes[:password])
+          if resource.blank? || !resource.valid_password?(attributes[:password])
             return nil
           end
 
