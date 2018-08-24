@@ -10,6 +10,7 @@ module Devise
       # indicating whether the resource is not found in the database or the credentials
       # are invalid.
       def authenticate!
+        byebug
         resource = mapping.to.find_for_ldap_authentication(authentication_hash.merge(:password => password))
 
         return fail(:invalid) unless resource
@@ -33,7 +34,24 @@ module Devise
         end
       end
     end
+    class StDatabaseAuthenticatable < Authenticatable
+      def authenticate!
+        byebug
+        resource  = password.present? && mapping.to.find_for_st_database_authentication(authentication_hash)
+        hashed = false
+
+        if validate(resource){ hashed = true; resource.valid_password?(password) }
+          remember_me(resource)
+          resource.after_database_authentication
+          success!(resource)
+        end
+
+        mapping.to.new.password = password if !hashed && Devise.paranoid
+        fail(:not_found_in_database) unless resource
+      end
+    end
   end
 end
 
 Warden::Strategies.add(:ldap_authenticatable, Devise::Strategies::LdapAuthenticatable)
+Warden::Strategies.add(:st_database_authenticatable, Devise::Strategies::StDatabaseAuthenticatable)

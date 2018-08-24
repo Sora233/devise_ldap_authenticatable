@@ -18,7 +18,7 @@ module Devise
       end
 
       def login_with
-        @login_with ||= Devise.mappings.find {|k,v| v.class_name == self.class.name}.last.to.authentication_keys.first
+        @login_with ||= Devise.mappings.find {|k, v| v.class_name == self.class.name}.last.to.authentication_keys.first
         self[@login_with]
       end
 
@@ -27,7 +27,7 @@ module Devise
 
         Devise::LDAP::Adapter.update_own_password(login_with, @password, current_password)
       end
-      
+
       def reset_password!(new_password, new_password_confirmation)
         if new_password == new_password_confirmation && ::Devise.ldap_update_password
           Devise::LDAP::Adapter.update_password(login_with, new_password)
@@ -39,7 +39,7 @@ module Devise
       def password=(new_password)
         @password = new_password
         if defined?(password_digest) && @password.present? && respond_to?(:encrypted_password=)
-          self.encrypted_password = password_digest(@password) 
+          self.encrypted_password = password_digest(@password)
         end
       end
 
@@ -87,18 +87,19 @@ module Devise
 
       module ClassMethods
         # Find a user for ldap authentication.
-        def find_for_ldap_authentication(attributes={})
+        def find_for_ldap_authentication(attributes = {})
           auth_key = self.authentication_keys.first
           return nil unless attributes[auth_key].present?
 
           auth_key_value = (self.case_insensitive_keys || []).include?(auth_key) ? attributes[auth_key].downcase : attributes[auth_key]
-      	  auth_key_value = (self.strip_whitespace_keys || []).include?(auth_key) ? auth_key_value.strip : auth_key_value
+          auth_key_value = (self.strip_whitespace_keys || []).include?(auth_key) ? auth_key_value.strip : auth_key_value
 
-          resource = where(auth_key => auth_key_value).first
+          resource = where(auth_key => auth_key_value, :login_type => 'ldap').first
 
           if resource.blank?
             resource = new
             resource[auth_key] = auth_key_value
+            resource.login_type = 'ldap'
             resource.password = attributes[:password]
           end
 
@@ -106,7 +107,7 @@ module Devise
             return nil
           end
 
-          if ::Devise.ldap_create_user && resource.new_record? 
+          if ::Devise.ldap_create_user && resource.new_record?
             resource.ldap_before_save if resource.respond_to?(:ldap_before_save)
             resource.save!
           end
@@ -118,6 +119,30 @@ module Devise
           puts "UPDATE_WITH_PASSWORD: #{resource.inspect}"
         end
 
+      end
+    end
+    module StDatabaseAuthenticatable
+      extend ActiveSupport::Concern
+      include DatabaseAuthenticatable
+      module ClassMethods
+        def find_for_st_database_authentication(attributes = {})
+          auth_key = self.authentication_keys.first
+          return nil unless attributes[auth_key].present?
+
+          auth_key_value = (self.case_insensitive_keys || []).include?(auth_key) ? attributes[auth_key].downcase : attributes[auth_key]
+          auth_key_value = (self.strip_whitespace_keys || []).include?(auth_key) ? auth_key_value.strip : auth_key_value
+
+          resource = where(auth_key => auth_key_value, :login_type => 'database').first
+
+          if resource.blank?
+            resource = new
+            resource[auth_key] = auth_key_value
+            resource.login_type = 'database'
+            resource.password = attributes[:password]
+          end
+
+          resource
+        end
       end
     end
   end
